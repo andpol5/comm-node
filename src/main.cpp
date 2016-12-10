@@ -4,12 +4,15 @@
  */
 #include <chrono>
 #include <iostream>
-#include <thread>
+//#include <thread>
 
 #include <boost/asio.hpp>
+#include <boost/thread.hpp>
 
 #include "CommsNodeAsyncTcpServer.h"
 #include "CommsNodeClient.h"
+
+//#include "../mingw/mingw.thread.h"
 
 using boost::asio::ip::tcp;
 
@@ -51,8 +54,8 @@ int main(int argc, char* argv[])
   }
   int portNumber = atoi(argv[2]);
 
-  std::thread sThread(serverThread, portNumber);
-  std::thread cThread(clientThread, argv[1], portNumber);
+  boost::thread sThread(&serverThread, portNumber);
+  boost::thread cThread(&clientThread, argv[1], portNumber);
 
   sThread.join();
   cThread.join();

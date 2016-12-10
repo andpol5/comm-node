@@ -1,0 +1,13 @@
+# Makefile for Windows and MinGW (https://nuwen.net/mingw.html)
+CC=g++ -std=c++11
+RM=del
+
+BOOST_FLAGS=-IC:/MinGW/include -LC:/MinGW/lib -lboost_system -lboost_filesystem -lboost_regex -lboost_system -lboost_thread -lboost_date_time
+
+all: commsnode
+
+commsnode:
+	$(CC) -o build/commsnode.exe src/main.cpp src/CommsNodeAsyncTcpServer.cpp src/CommsNodeClient.cpp -Iinclude $(BOOST_FLAGS) -lws2_32 -lwsock32
+
+clean:
+	$(RM) build/commsnode.exe
