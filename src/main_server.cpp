@@ -9,7 +9,6 @@
 
 #include "AsyncTcpServer.h"
 
-//using namespace boost;
 using boost::asio::ip::tcp;
 
 namespace
