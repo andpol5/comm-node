@@ -1,6 +1,7 @@
 # Eclipse project things
 .cproject
 .project
+.settings/*
 
 # cmake
 Makefile

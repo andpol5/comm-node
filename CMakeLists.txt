@@ -16,8 +16,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 include_directories(include)
  
 # Source all *.cpp files from this project
-file(GLOB client_sources "src/*[!main_server].cpp")
-file(GLOB server_sources "src/*[!main_client].cpp")
+file(GLOB client_sources "src/*[!mainServer].cpp")
+file(GLOB server_sources "src/*[!mainClient].cpp")
 
 add_executable(cnclient ${client_sources})
 target_link_libraries(cnclient ${Boost_LIBRARIES})
