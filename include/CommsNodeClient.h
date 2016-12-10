@@ -12,10 +12,10 @@ public:
   CommsNodeClient(boost::asio::io_service& ioService,
       const char* hostname, int serverPort);
 
-  void printDaytimeOnTimer();
-
 private:
-  std::string readDaytimeFromServer();
+  void handleTimeOutAndRestartTimer();
+
+  std::string readFromServer();
 
   boost::asio::io_service& ioService_;
   boost::asio::deadline_timer timer_;

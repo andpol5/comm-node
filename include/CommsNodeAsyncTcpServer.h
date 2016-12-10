@@ -9,10 +9,10 @@
 
 #include "ServerTcpConnection.h"
 
-class AsyncTcpServer
+class CommsNodeAsyncTcpServer
 {
 public:
-  AsyncTcpServer(boost::asio::io_service& ioService, unsigned short portNumber);
+  CommsNodeAsyncTcpServer(boost::asio::io_service& ioService, unsigned short portNumber);
 
 private:
   void startAcceptingConnections();

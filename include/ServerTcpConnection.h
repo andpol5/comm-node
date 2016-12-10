@@ -50,7 +50,7 @@ private:
 
   std::string createMessageString()
   {
-    boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
+    auto now = boost::posix_time::second_clock::local_time();
     return std::string(uniqueId_ + " " + boost::posix_time::to_simple_string(now));
   }
 
