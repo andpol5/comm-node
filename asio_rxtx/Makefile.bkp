@@ -1,0 +1,17 @@
+# Makefile for sender and receiver
+CC=g++ -std=c++11
+RM=rm -f
+
+BOOST_FLAGS=-I/usr/include/boost/ -L/usr/lib/x86_64-linux-gnu/ -lboost_system -lboost_filesystem -lboost_regex -lboost_system -lboost_thread -lboost_date_time
+
+all: sender receiver
+
+sender:
+	$(CC) -o tx sender.cpp $(BOOST_FLAGS)
+
+receiver:
+	$(CC) -o rx receiver.cpp $(BOOST_FLAGS)
+
+clean:
+	$(RM) rx tx
+

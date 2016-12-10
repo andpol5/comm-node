@@ -9,6 +9,7 @@
 #include <boost/thread.hpp>
 
 #include "CommsNodeAsyncTcpServer.h"
+#include "CommsNodeDelayedTcpServer.h"
 #include "CommsNodeClient.h"
 
 using boost::asio::ip::tcp;

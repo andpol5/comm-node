@@ -3,12 +3,14 @@
  *  Communications Node
  *  @author Andrei Polzounov
  */
+#include <string>
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
 class ServerTcpConnection : public boost::enable_shared_from_this<ServerTcpConnection>
 {
@@ -33,6 +35,11 @@ public:
   void start()
   {
     message_ = createMessageString();
+    //todo: add delayed response here
+//    //************************
+//    boost::posix_time::milliseconds msTime(57);
+//    boost::this_thread::sleep(msTime);
+    //************************
     boost::asio::async_write(socket_, boost::asio::buffer(message_),
         boost::bind(&ServerTcpConnection::handleWrite, shared_from_this(),
             boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
@@ -50,8 +57,8 @@ private:
 
   std::string createMessageString()
   {
-    auto now = boost::posix_time::second_clock::local_time();
-    return std::string(uniqueId_ + " " + boost::posix_time::to_simple_string(now));
+    auto now = boost::posix_time::second_clock::universal_time();
+    return std::string(uniqueId_ + "::" + boost::posix_time::to_simple_string(now));
   }
 
   tcp::socket socket_;

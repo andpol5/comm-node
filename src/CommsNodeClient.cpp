@@ -47,7 +47,7 @@ std::string CommsNodeClient::readFromServer()
   tcp::resolver::iterator endpointIterator = resolver.resolve(query);
 
   // Time set!
-  auto timeBefore = boost::posix_time::microsec_clock::local_time();
+  auto timeBefore = boost::posix_time::microsec_clock::local_time().time_of_day().total_milliseconds();
   tcp::socket socket(ioService_);
   boost::asio::connect(socket, endpointIterator);
 
@@ -58,8 +58,8 @@ std::string CommsNodeClient::readFromServer()
     size_t len = socket.read_some(boost::asio::buffer(buff), error);
 
     // Mark!
-    auto timeAfter = boost::posix_time::microsec_clock::local_time();
-    boost::posix_time::time_duration diff = timeAfter - timeBefore;
+    auto timeAfter = boost::posix_time::microsec_clock::local_time().time_of_day().total_milliseconds();
+    auto diff = timeAfter - timeBefore;
 
     if(error == boost::asio::error::eof)
     {
@@ -73,7 +73,7 @@ std::string CommsNodeClient::readFromServer()
     std::stringstream result;
     result << count_ << " ";
     result.write(buff, len);
-    result << " timeDiff: " << diff.total_milliseconds() << std::endl;
+    result << " timeDiff: " << diff << std::endl;
     return result.str();
   }
 }

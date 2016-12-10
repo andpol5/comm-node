@@ -23,7 +23,8 @@ CommsNodeAsyncTcpServer::CommsNodeAsyncTcpServer(boost::asio::io_service& ioServ
   uniqueId_ = to_string(uuid);
   startAcceptingConnections();
 
-  std::cout << "Starting server. UUID: " << uniqueId_ << std::endl;
+  std::cout << "Starting asynchronous server on "<< serverPortNumber_
+      << ". UUID: " << uniqueId_ << std::endl;
 }
 
 void CommsNodeAsyncTcpServer::startAcceptingConnections()
