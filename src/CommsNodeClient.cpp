@@ -7,6 +7,7 @@
 
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "CommsNodeClient.h"
 
@@ -45,6 +46,8 @@ std::string CommsNodeClient::readFromServer()
   tcp::resolver::query query(hostname_, std::to_string(serverPort_));
   tcp::resolver::iterator endpointIterator = resolver.resolve(query);
 
+  // Time set!
+  auto timeBefore = boost::posix_time::microsec_clock::local_time();
   tcp::socket socket(ioService_);
   boost::asio::connect(socket, endpointIterator);
 
@@ -53,6 +56,10 @@ std::string CommsNodeClient::readFromServer()
     char buff[MESSAGE_BUFFER_MAX_SIZE];
     boost::system::error_code error;
     size_t len = socket.read_some(boost::asio::buffer(buff), error);
+
+    // Mark!
+    auto timeAfter = boost::posix_time::microsec_clock::local_time();
+    boost::posix_time::time_duration diff = timeAfter - timeBefore;
 
     if(error == boost::asio::error::eof)
     {
@@ -66,7 +73,7 @@ std::string CommsNodeClient::readFromServer()
     std::stringstream result;
     result << count_ << " ";
     result.write(buff, len);
-    result << std::endl;
+    result << " timeDiff: " << diff.total_milliseconds() << std::endl;
     return result.str();
   }
 }
