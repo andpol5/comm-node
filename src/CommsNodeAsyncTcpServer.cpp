@@ -6,25 +6,35 @@
 #include <string>
 
 #include <boost/bind.hpp>
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid.hpp>
 
 #include "CommsNodeAsyncTcpServer.h"
+
+namespace
+{
+  unsigned short NULL_PORT = 0;
+}
 
 using boost::asio::ip::tcp;
 
 CommsNodeAsyncTcpServer::CommsNodeAsyncTcpServer(boost::asio::io_service& ioService,
-    unsigned short portNumber)
-: acceptor_(ioService, tcp::endpoint(tcp::v4(), portNumber))
-, serverPortNumber_(portNumber)
+    const std::string& commsNodeSessionId)
+: endpoint_(tcp::v4(), NULL_PORT)
+, acceptor_(ioService)
+, commsNodeSessionId_(commsNodeSessionId)
 {
-  auto uuid = boost::uuids::random_generator()();
-  uniqueId_ = to_string(uuid);
-  startAcceptingConnections();
+  // Let asio assign and bind some port number and then we can read it from local_endpoint()
+  acceptor_.open(endpoint_.protocol());
+  acceptor_.set_option(tcp::acceptor::reuse_address(true));
+  acceptor_.bind(endpoint_);
+  serverPortNumber_ = acceptor_.local_endpoint().port();
 
-  std::cout << "Starting asynchronous server on "<< serverPortNumber_
-      << ". UUID: " << uniqueId_ << std::endl;
+  std::cout << "Starting asynchronous TCP listen server on port: "<< serverPortNumber_ << std::endl;
+  startAcceptingConnections();
+}
+
+int CommsNodeAsyncTcpServer::serverListenPort() const
+{
+  return serverPortNumber_;
 }
 
 void CommsNodeAsyncTcpServer::startAcceptingConnections()
@@ -32,7 +42,7 @@ void CommsNodeAsyncTcpServer::startAcceptingConnections()
   ServerTcpConnection::pointer newConnection = ServerTcpConnection::create(
       acceptor_.get_io_service());
 
-  newConnection->setUniqueServerId(uniqueId_);
+  newConnection->setUniqueServerId(commsNodeSessionId_);
 
   acceptor_.async_accept(newConnection->socket(),
       boost::bind(&CommsNodeAsyncTcpServer::handleAccept, this, newConnection,
@@ -43,7 +53,9 @@ void CommsNodeAsyncTcpServer::handleAccept(ServerTcpConnection::pointer newConne
     const boost::system::error_code& error)
 {
   if (!error)
+  {
     newConnection->start();
+  }
 
   startAcceptingConnections();
 }

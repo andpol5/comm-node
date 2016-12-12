@@ -9,71 +9,81 @@
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include "CommNodeMap.h"
 #include "CommsNodeClient.h"
 
 namespace
 {
   // Check the server every x seconds
   const int TIMER_UPDATE_SECONDS = 2;
-  const int MESSAGE_BUFFER_MAX_SIZE = 128;
 }
 
 using boost::asio::ip::tcp;
 
 CommsNodeClient::CommsNodeClient(boost::asio::io_service& ioService,
-    const char* hostname, int serverPort)
+    const CommNodeMap& nodeMap)
 : ioService_(ioService)
 , timer_(ioService_, boost::posix_time::seconds(TIMER_UPDATE_SECONDS))
-, count_(0)
-, hostname_(hostname)
-, serverPort_(serverPort)
+, sharedCommNodeMap_(nodeMap)
 {
   timer_.async_wait(boost::bind(&CommsNodeClient::handleTimeOutAndRestartTimer, this));
 }
 
 void CommsNodeClient::handleTimeOutAndRestartTimer()
 {
-  std::cout << readFromServer();
-  ++count_;
+  readFromServers();
 
   timer_.expires_from_now(boost::posix_time::seconds(TIMER_UPDATE_SECONDS));
   timer_.async_wait(boost::bind(&CommsNodeClient::handleTimeOutAndRestartTimer, this));
 }
 
-std::string CommsNodeClient::readFromServer()
+void CommsNodeClient::readFromServers()
 {
-  tcp::resolver resolver(ioService_);
-  tcp::resolver::query query(hostname_, std::to_string(serverPort_));
-  tcp::resolver::iterator endpointIterator = resolver.resolve(query);
-
-  // Time set!
-  auto timeBefore = boost::posix_time::microsec_clock::local_time().time_of_day().total_milliseconds();
-  tcp::socket socket(ioService_);
-  boost::asio::connect(socket, endpointIterator);
-
-  while(true)
+  std::cout << "reading num servers: " << commNodeMap_.size() << std::endl;
+  // Get the current list
+  std::map<std::string, CommNode> map = sharedCommNodeMap_.map();
+  // It should be the same size because of the signal/slot mechanism
+//  if(map.size() != commNodeMap_)
+//  {
+//    std::cerr << "Shared map size: " << map.size()
+//        << ", does not equal cached map size: " << commNodeMap_.size() << std::endl;
+//  }
+  commNodeMap_ = map;
+  int counter = 0;
+  for(auto itr = commNodeMap_.begin(), end = commNodeMap_.end(); itr != end; ++itr, ++counter)
   {
-    char buff[MESSAGE_BUFFER_MAX_SIZE];
-    boost::system::error_code error;
-    size_t len = socket.read_some(boost::asio::buffer(buff), error);
+    CommNode& current = itr->second;
+    tcp::resolver resolver(ioService_);
+    tcp::resolver::query query(current.tcpServerAddress.to_string(), std::to_string(current.tcpServerPort));
+    tcp::resolver::iterator endpointIterator = resolver.resolve(query);
 
-    // Mark!
-    auto timeAfter = boost::posix_time::microsec_clock::local_time().time_of_day().total_milliseconds();
-    auto diff = timeAfter - timeBefore;
+    // Time set!
+    auto timeBefore = boost::posix_time::microsec_clock::universal_time().time_of_day().total_microseconds();
+    tcp::socket socket(ioService_);
+    boost::asio::connect(socket, endpointIterator);
 
-    if(error == boost::asio::error::eof)
+    while(true)
     {
-      break; // Connection closed cleanly by peer
-    }
-    else if (error)
-    {
-      throw boost::system::system_error(error); // Some other error
-    }
+      boost::system::error_code error;
+      size_t bytesRead = socket.read_some(boost::asio::buffer(dataBuffer_), error);
 
-    std::stringstream result;
-    result << count_ << " ";
-    result.write(buff, len);
-    result << " timeDiff: " << diff << std::endl;
-    return result.str();
+      // Mark!
+      auto timeAfter = boost::posix_time::microsec_clock::universal_time().time_of_day().total_microseconds();
+      auto diff = timeAfter - timeBefore;
+
+      if(error == boost::asio::error::eof)
+      {
+        break; // Connection closed cleanly by peer
+      }
+      else if (error)
+      {
+        throw boost::system::system_error(error); // Some other error
+      }
+
+      std::stringstream result;
+      result << "node#" << counter << " ";
+      result.write(dataBuffer_, bytesRead);
+      result << " timeDiff: " << diff << std::endl;
+    }
   }
 }
