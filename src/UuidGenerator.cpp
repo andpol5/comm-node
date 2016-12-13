@@ -3,7 +3,7 @@
  *  @author Andrei Polzounov
  */
 
-// Workaround for Windows warning with Boost UUID library
+// Workaround for a Windows warning with Boost UUID library
 #ifdef _WIN32
 #pragma GCC diagnostic ignored "-Wconversion-null"
 #endif
@@ -18,9 +18,8 @@ namespace UuidGenerator
 {
   std::string generate()
   {
-	boost::mt19937 rand;
-    boost::uuids::basic_random_generator<boost::mt19937> gen(&rand);
-	boost::uuids::uuid u = gen();
-    return to_string(u);
+    auto generator = boost::uuids::random_generator();
+    auto uuid = generator();
+    return to_string(uuid);
   }
 }
