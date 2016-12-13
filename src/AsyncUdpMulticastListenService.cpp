@@ -14,30 +14,26 @@
 #include "UdpMulticastMessage.h"
 #include "UtilityFunctions.h"
 
+namespace asio = boost::asio;
 namespace
 {
+  const asio::ip::address LISTEN_ADDRESS = 
+    boost::asio::ip::address::from_string("0.0.0.0");
   const short MULTICAST_PORT = 30001;
 }
-namespace asio = boost::asio;
 
 AsyncUdpMulticastListenService::AsyncUdpMulticastListenService(asio::io_service& ioService,
     const asio::ip::address& multicastListenAddress,
     CommNodeList& nodeList)
-: ioService_(ioService)
-, multicastListenAddress_(multicastListenAddress)
-, senderEndpoint_(multicastListenAddress_, MULTICAST_PORT)
+: multicastListenAddress_(multicastListenAddress)
 , socket_(ioService)
 , sharedNodeList_(nodeList)
 {
-  start();
-}
-
-void AsyncUdpMulticastListenService::start()
-{
-  // Create the socket so that multiple addresses may be bound to the same address.
-  socket_.open(senderEndpoint_.protocol());
+  boost::asio::ip::udp::endpoint listenEndpoint(LISTEN_ADDRESS, MULTICAST_PORT);	
+  // Create the socket so that multiple addresses may be bound to the same address
+  socket_.open(listenEndpoint.protocol());
   socket_.set_option(asio::ip::udp::socket::reuse_address(true));
-  socket_.bind(senderEndpoint_);
+  socket_.bind(listenEndpoint);
 
   // Join the multicast group.
   socket_.set_option(asio::ip::multicast::join_group(multicastListenAddress_));

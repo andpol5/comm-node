@@ -21,14 +21,11 @@ public:
       CommNodeList& nodeList);
 
 private:
-  void start();
-
   void handleReceiveFrom(const boost::system::error_code& error,
       size_t bytesReceived,
       boost::asio::ip::address senderAddress);
   void bindReceiveToSocket();
 
-  boost::asio::io_service& ioService_;
   const boost::asio::ip::address& multicastListenAddress_;
   boost::asio::ip::udp::endpoint senderEndpoint_;
   boost::asio::ip::udp::socket socket_;

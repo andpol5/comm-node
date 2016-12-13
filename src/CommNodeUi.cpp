@@ -6,10 +6,9 @@
 #ifndef _WIN32
 // ncurses for Linux
 #include <ncurses.h>
-#else
-#include <conio.h>
 #endif
 
+#include <cstdlib>
 #include <iomanip>
 #include <iostream>
 
@@ -80,7 +79,7 @@ void CommNodeUi::updateScreen(const std::vector<CommNode>& nodes) const
 #ifndef _WIN32
   clear();
 #else
-
+  system("cls");
 #endif
   int count = 1;
   int numNodes = nodes.size();
@@ -112,13 +111,13 @@ void CommNodeUi::updateScreen(const std::vector<CommNode>& nodes) const
        << setWidth(0.0, 8) << "|"
        << "\n";
   }
-  ss << "-------------+--------------------+--------+--------+--------+--------+\n";
+  ss << "-------------+--------------------+--------+--------+--------+--------+\n"; 
   std::string string = ss.str();
 
 #ifndef _WIN32
   printw(string.c_str());
   refresh();
 #else
-
+  std::cout << string;
 #endif
 }
