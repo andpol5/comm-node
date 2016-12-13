@@ -4,14 +4,19 @@ RM=rm -f
 
 BOOST_FLAGS=-I/usr/include/boost/ -L/usr/lib/x86_64-linux-gnu/ -lboost_system -lboost_filesystem -lboost_regex -lboost_system -lboost_thread -lboost_date_time
 
-all: sender receiver
+all: sender receiver snoop
 
 sender:
 	$(CC) -o tx sender.cpp $(BOOST_FLAGS)
 
 receiver:
 	$(CC) -o rx receiver.cpp $(BOOST_FLAGS)
+	
+snoop:
+	$(CC) -o snoop snoop_on_tcp.cpp $(BOOST_FLAGS) -pthread
+	
+curses:
+	$(CC) -o curses ncurses_hello.cpp -lncurses		
 
 clean:
-	$(RM) rx tx
-
+	$(RM) rx tx snoop curses
