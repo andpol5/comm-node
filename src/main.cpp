@@ -8,13 +8,14 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
-#include "CommNodeMap.h"
-#include "CommsNodeAsyncTcpServer.h"
-#include "CommsNodeClient.h"
-#include "CommsNodeDiscoverableService.h"
-#include "CommsNodeDiscoveryService.h"
-#include "DiscoveryMulticastMessage.h"
-#include "UuidGenerator.h"
+#include "AsyncTcpListenServer.h"
+#include "AsyncUdpMulticastListenService.h"
+#include "AsyncUdpMulticastSendingService.h"
+#include "CommNodeList.h"
+#include "CommNodeUi.h"
+#include "SyncTcpNodeCommsClient.h"
+#include "UdpMulticastMessage.h"
+#include "UtilityFunctions.h"
 
 using boost::asio::ip::tcp;
 typedef boost::asio::ip::address IpAddress;
@@ -25,12 +26,14 @@ namespace
   const int TEMP_TCP_SERVER_PORT = 1337;
 }
 
-void tcpClientThread(CommNodeMap& nodeMap)
+void tcpClientAndUiThread(CommNodeList& nodeList)
 {
   try
   {
+    CommNodeUi ui;
+
     boost::asio::io_service ioService;
-    CommsNodeClient client(ioService, nodeMap);
+    SyncTcpNodeCommsClient tcpClient(ioService, nodeList, ui);
     ioService.run();
   }
   catch (std::exception& e)
@@ -44,24 +47,14 @@ void udpMulticastAndTcpServerThread(std::string sessionId, IpAddress multicastAd
   try
   {
     boost::asio::io_service ioService;
-    CommsNodeAsyncTcpServer server(ioService, sessionId);
+    AsyncTcpListenServer server(ioService, sessionId);
 
-    // Fill out a discovery message with the session ID and the TCP-server port
-    DiscoveryMulticastMessage discoveryMessage;
-    discoveryMessage.setSessionId(sessionId);
-    discoveryMessage.setTcpServerPort(server.serverListenPort());
-    bool ok;
-    std::string discoveryMessageString = discoveryMessage.encodeMessage(ok);
-
-    if(!ok)
-    {
-      std::cerr << "Could not encode UDP-multicast message with the following params:"
-                << "\n    SessionId: " << sessionId
-                << "\n    TcpServerPort: " << discoveryMessage.tcpServerPort() << std::endl;
-      exit(1);
-    }
-
-    CommsNodeDiscoverableService multicastService(
+    // Fill out a multicast message with the session ID and the TCP-server port
+    UdpMulticastMessage multicastMessage;
+    multicastMessage.setSessionId(sessionId);
+    multicastMessage.setTcpServerPort(server.serverListenPort());
+    std::string discoveryMessageString = multicastMessage.encodeMessage();
+    AsyncUdpMulticastSendingService multicastSendingService(
         ioService, multicastAddress, discoveryMessageString, MULTICAST_TIMEOUT_SECONDS);
     ioService.run();
   }
@@ -72,13 +65,13 @@ void udpMulticastAndTcpServerThread(std::string sessionId, IpAddress multicastAd
 }
 
 void udpMulticastReceiverThread(IpAddress multicastListenAddress,
-    CommNodeMap& nodeMap)
+    CommNodeList& nodeList)
 {
   try
   {
     boost::asio::io_service ioService;
-    CommsNodeDiscoveryService discoverySvc(ioService,
-        multicastListenAddress, nodeMap);
+    AsyncUdpMulticastListenService multicastListenService(
+        ioService, multicastListenAddress, nodeList);
     ioService.run();
   }
   catch (std::exception& e)
@@ -92,29 +85,26 @@ int main(int argc, char** argv)
   if (argc != 2)
   {
     std::cerr << "Usage: " << argv[0] << " <multicast_address>\n"
-              << "  For IPv4, try:\n"
-              << "    " << argv[0] << " 239.255.0.1\n"
-              << "  For IPv6, try:\n"
-              << "    " << argv[0] << " ff31::8000:1234" << std::endl;
+              << "  Example: " << argv[0] << " 239.255.0.1\n" << std::endl;
     return 1;
   }
 
   IpAddress multicastAddress = IpAddress::from_string(argv[1]);
 
   // Generate a unique session id
-  std::string uniqueSesssionId = UuidGenerator::generate();
+  std::string uniqueSesssionId = UtilityFunctions::generateUuid();
   std::cout << "CommsNode Session id: " << uniqueSesssionId << std::endl;
 
   // Thread safe list of detected comm nodes
-  boost::mutex nodeMapMutex;
-  CommNodeMap nodeMap(nodeMapMutex);
+  boost::mutex nodeListMutex;
+  CommNodeList nodeList(nodeListMutex);
 
   // Using boost::thread for Windows compatibility as the MinGW compiler
   // does not yet support std::thread
   boost::thread thread1(&udpMulticastAndTcpServerThread, uniqueSesssionId, multicastAddress);
   // Pass the nodeList by reference since boost passes by value by default
-  boost::thread thread2(&udpMulticastReceiverThread, multicastAddress, boost::ref(nodeMap));
-  boost::thread thread3(&tcpClientThread, boost::ref(nodeMap));
+  boost::thread thread2(&udpMulticastReceiverThread, multicastAddress, boost::ref(nodeList));
+  boost::thread thread3(&tcpClientAndUiThread, boost::ref(nodeList));
 
   thread1.join();
   thread2.join();

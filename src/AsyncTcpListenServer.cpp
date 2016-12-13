@@ -3,11 +3,10 @@
  *  @author Andrei Polzounov
  */
 #include <iostream>
-#include <string>
 
 #include <boost/bind.hpp>
 
-#include "CommsNodeAsyncTcpServer.h"
+#include "AsyncTcpListenServer.h"
 
 namespace
 {
@@ -16,7 +15,7 @@ namespace
 
 using boost::asio::ip::tcp;
 
-CommsNodeAsyncTcpServer::CommsNodeAsyncTcpServer(boost::asio::io_service& ioService,
+AsyncTcpListenServer::AsyncTcpListenServer(boost::asio::io_service& ioService,
     const std::string& commsNodeSessionId)
 : endpoint_(tcp::v4(), NULL_PORT)
 , acceptor_(ioService, endpoint_)
@@ -27,26 +26,26 @@ CommsNodeAsyncTcpServer::CommsNodeAsyncTcpServer(boost::asio::io_service& ioServ
   acceptor_.set_option(tcp::acceptor::reuse_address(true));
   serverPortNumber_ = acceptor_.local_endpoint().port();
 
-  std::cout << "Starting asynchronous TCP listen server on port: " << serverPortNumber_ << std::endl;
+  std::cout << "Starting async TCP listen server on port: " << serverPortNumber_ << std::endl;
   startAcceptingConnections();
 }
 
-int CommsNodeAsyncTcpServer::serverListenPort() const
+int AsyncTcpListenServer::serverListenPort() const
 {
   return serverPortNumber_;
 }
 
-void CommsNodeAsyncTcpServer::startAcceptingConnections()
+void AsyncTcpListenServer::startAcceptingConnections()
 {
   ServerTcpConnection::pointer newConnection = ServerTcpConnection::create(
       acceptor_.get_io_service());
 
   acceptor_.async_accept(newConnection->socket(),
-      boost::bind(&CommsNodeAsyncTcpServer::handleAccept, this,
+      boost::bind(&AsyncTcpListenServer::handleAccept, this,
           newConnection, boost::asio::placeholders::error));
 }
 
-void CommsNodeAsyncTcpServer::handleAccept(ServerTcpConnection::pointer newConnection,
+void AsyncTcpListenServer::handleAccept(ServerTcpConnection::pointer newConnection,
     const boost::system::error_code& error)
 {
   if (!error)

@@ -9,16 +9,16 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 
-#include "CommsNodeDiscoverableService.h"
+#include "AsyncUdpMulticastSendingService.h"
 
 namespace
 {
-  const short MULTICAST_PORT = 30001;
+  const int MULTICAST_PORT = 30001;
 }
 
 using boost::asio::ip::tcp;
 
-CommsNodeDiscoverableService::CommsNodeDiscoverableService(boost::asio::io_service& ioService,
+AsyncUdpMulticastSendingService::AsyncUdpMulticastSendingService(boost::asio::io_service& ioService,
     const boost::asio::ip::address& multicastAddress, const std::string& multicastMessage,
     int timeoutSeconds)
 : ioService_(ioService)
@@ -35,25 +35,25 @@ CommsNodeDiscoverableService::CommsNodeDiscoverableService(boost::asio::io_servi
   start();
 }
 
-void CommsNodeDiscoverableService::start()
+void AsyncUdpMulticastSendingService::start()
 {
-  timer_.async_wait(boost::bind(&CommsNodeDiscoverableService::handleTimeOutAndRestartTimer,
+  timer_.async_wait(boost::bind(&AsyncUdpMulticastSendingService::handleTimeOutAndRestartTimer,
       this, boost::asio::placeholders::error));
 }
 
-void CommsNodeDiscoverableService::stop()
+void AsyncUdpMulticastSendingService::stop()
 {
   timer_.cancel();
 }
 
-void CommsNodeDiscoverableService::handleTimeOutAndRestartTimer(const boost::system::error_code& error)
+void AsyncUdpMulticastSendingService::handleTimeOutAndRestartTimer(const boost::system::error_code& error)
 {
 //  std::cout << "DEBUG: UdpMulticaster - handled timeout" << std::endl;
   if(!error)
   {
     socket_.async_send_to(
         boost::asio::buffer(multicastMessage_), endpoint_,
-        boost::bind(&CommsNodeDiscoverableService::handleSendTo, this,
+        boost::bind(&AsyncUdpMulticastSendingService::handleSendTo, this,
           boost::asio::placeholders::error));
   }
   else
@@ -62,13 +62,13 @@ void CommsNodeDiscoverableService::handleTimeOutAndRestartTimer(const boost::sys
   }
 }
 
-void CommsNodeDiscoverableService::handleSendTo(const boost::system::error_code& error)
+void AsyncUdpMulticastSendingService::handleSendTo(const boost::system::error_code& error)
 {
 //  std::cout << "DEBUG: UdpMulticaster - handled sendto" << std::endl;
   if(!error)
   {
     timer_.expires_from_now(boost::posix_time::seconds(timeoutSeconds_));
-    timer_.async_wait(boost::bind(&CommsNodeDiscoverableService::handleTimeOutAndRestartTimer,
+    timer_.async_wait(boost::bind(&AsyncUdpMulticastSendingService::handleTimeOutAndRestartTimer,
         this, boost::asio::placeholders::error));
   }
   else

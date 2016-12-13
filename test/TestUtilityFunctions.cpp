@@ -7,11 +7,11 @@
 
 #include "gtest/gtest.h"
 
-#include "UuidGenerator.h"
+#include "UtilityFunctions.h"
 
 using namespace std;
 
-TEST(TestUuidGenerator, allUuidsAreUnique)
+TEST(TestUtilityFunctions, allUuidsAreUnique)
 {
   // Quantitative test to see if N ids will all be different from each other
   const unsigned int numberOfIdsToGenerate = 500;
@@ -19,7 +19,7 @@ TEST(TestUuidGenerator, allUuidsAreUnique)
   ids.resize(numberOfIdsToGenerate);
   for(auto itr = ids.begin(), end = ids.end(); itr != end; ++itr)
   {
-    *itr = UuidGenerator::generate();
+    *itr = UtilityFunctions::generateUuid();
   }
 
   // Use std::set to count the distinct values
@@ -30,4 +30,17 @@ TEST(TestUuidGenerator, allUuidsAreUnique)
   }
 
   EXPECT_EQ(distinctContainer.size(), numberOfIdsToGenerate);
+}
+
+TEST(TestUtilityFunctions, microsecondClocksAreIncreasing)
+{
+  // Quantitative test to see if N timestamps will increase
+  const int numberOfTests = 500;
+
+  uint64_t previousTime = UtilityFunctions::microsecondsSinceEpoch();
+  for(int i = 0; i < numberOfTests; ++i)
+  {
+    uint64_t currentTime = UtilityFunctions::microsecondsSinceEpoch();
+    EXPECT_LT(previousTime, currentTime);
+  }
 }

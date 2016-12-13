@@ -8,9 +8,11 @@
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 
-#include "CommNodeMap.h"
-#include "CommsNodeDiscoveryService.h"
-#include "DiscoveryMulticastMessage.h"
+#include "AsyncUdpMulticastListenService.h"
+#include "CommNode.h"
+#include "CommNodeList.h"
+#include "UdpMulticastMessage.h"
+#include "UtilityFunctions.h"
 
 namespace
 {
@@ -18,19 +20,19 @@ namespace
 }
 namespace asio = boost::asio;
 
-CommsNodeDiscoveryService::CommsNodeDiscoveryService(asio::io_service& ioService,
+AsyncUdpMulticastListenService::AsyncUdpMulticastListenService(asio::io_service& ioService,
     const asio::ip::address& multicastListenAddress,
-    CommNodeMap& commNodeMap)
+    CommNodeList& nodeList)
 : ioService_(ioService)
 , multicastListenAddress_(multicastListenAddress)
 , senderEndpoint_(multicastListenAddress_, MULTICAST_PORT)
 , socket_(ioService)
-, commNodeMap_(commNodeMap)
+, sharedNodeList_(nodeList)
 {
   start();
 }
 
-void CommsNodeDiscoveryService::start()
+void AsyncUdpMulticastListenService::start()
 {
   // Create the socket so that multiple addresses may be bound to the same address.
   socket_.open(senderEndpoint_.protocol());
@@ -43,14 +45,15 @@ void CommsNodeDiscoveryService::start()
   bindReceiveToSocket();
 }
 
-void CommsNodeDiscoveryService::handleReceiveFrom(
+void AsyncUdpMulticastListenService::handleReceiveFrom(
     const boost::system::error_code& error,
     size_t bytesReceived, asio::ip::address senderAddress)
 {
-//  std::cout << "DEBUG: UdpListenServer - handled receive from" << std::endl;
+  uint64_t time = UtilityFunctions::microsecondsSinceEpoch();
+
   if(!error)
   {
-    DiscoveryMulticastMessage msg;
+    UdpMulticastMessage msg;
     bool messageDecoded;
     msg.decodeMessage(std::string(dataBuffer_, bytesReceived), messageDecoded);
 
@@ -58,16 +61,14 @@ void CommsNodeDiscoveryService::handleReceiveFrom(
     if(messageDecoded && senderAddress != multicastListenAddress_)
     {
       CommNode newNode;
+      newNode.timeStampLastReceived = time;
       newNode.sessionId = msg.sessionId();
       newNode.tcpServerPort = msg.tcpServerPort();
       // Server address was not part of the message, so we assume it's the same as the UDP sender
       newNode.tcpServerAddress = senderAddress;
 
       // Add node to the shared list
-      commNodeMap_.addNode(newNode);
-
-      //std::cout << "Received nodeMsg: " << newNode.sessionId << ", " << newNode.tcpServerPort
-      //    << ", " << newNode.tcpServerAddress.to_string() << std::endl;
+      sharedNodeList_.addNode(newNode);
     }
     else if(senderAddress != multicastListenAddress_)
     {
@@ -81,11 +82,11 @@ void CommsNodeDiscoveryService::handleReceiveFrom(
   bindReceiveToSocket();
 }
 
-void CommsNodeDiscoveryService::bindReceiveToSocket()
+void AsyncUdpMulticastListenService::bindReceiveToSocket()
 {
   socket_.async_receive_from(
-      asio::buffer(dataBuffer_, maxLength_), senderEndpoint_,
-      boost::bind(&CommsNodeDiscoveryService::handleReceiveFrom, this,
+      asio::buffer(dataBuffer_, MAX_BUFFER_LENGTH), senderEndpoint_,
+      boost::bind(&AsyncUdpMulticastListenService::handleReceiveFrom, this,
         asio::placeholders::error,
         asio::placeholders::bytes_transferred,
         senderEndpoint_.address()));

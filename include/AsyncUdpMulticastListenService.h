@@ -7,18 +7,22 @@
 
 #include <boost/asio.hpp>
 
-class CommNodeMap;
+class CommNodeList;
 
-class CommsNodeDiscoveryService
+/*
+ * AsyncUdpMulticastListenService listens to UDP multicasts and registers their corresponding messages
+ * in the shared CommNodeMap
+ */
+class AsyncUdpMulticastListenService
 {
 public:
-  CommsNodeDiscoveryService(boost::asio::io_service& ioService,
+  AsyncUdpMulticastListenService(boost::asio::io_service& ioService,
       const boost::asio::ip::address& multicastListenAddress,
-      CommNodeMap& commNodeMap);
-
-  void start();
+      CommNodeList& nodeList);
 
 private:
+  void start();
+
   void handleReceiveFrom(const boost::system::error_code& error,
       size_t bytesReceived,
       boost::asio::ip::address senderAddress);
@@ -29,9 +33,9 @@ private:
   boost::asio::ip::udp::endpoint senderEndpoint_;
   boost::asio::ip::udp::socket socket_;
 
-  CommNodeMap& commNodeMap_;
+  CommNodeList& sharedNodeList_;
 
   // Buffer for receiving messages
-  static const int maxLength_ = 512;
-  char dataBuffer_[512];
+  static const int MAX_BUFFER_LENGTH = 512;
+  char dataBuffer_[MAX_BUFFER_LENGTH];
 };

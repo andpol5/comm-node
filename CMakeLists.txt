@@ -19,6 +19,11 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-std=c++11 -Wall -Wextra -Werror -pthread)
 endif()
 
+# OS Specific stuff
+if(UNIX)
+    find_package(Curses REQUIRED)
+    include_directories(${CURSES_INCLUDE_DIRS})
+endif()
 if(MSVC)
     #vc 2012 fix for vararg templates
     set(MSVC_COMPILER_DEFS "-std=c++11 -Wall -Wextra -Werror -D_VARIADIC_MAX=10")
@@ -32,14 +37,17 @@ set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include)
 include_directories(${COMMON_INCLUDES})
 # Source the cpp files  
 set(COMMSNODE_LIB_SOURCES 
-    src/CommNodeMap.cpp
-    src/CommsNodeAsyncTcpServer.cpp
-    src/CommsNodeClient.cpp
-    src/CommsNodeDiscoverableService.cpp
-    src/CommsNodeDiscoveryService.cpp
-    src/DiscoveryMulticastMessage.cpp
-    src/UuidGenerator.cpp
+    src/AsyncTcpListenServer.cpp
+    src/AsyncUdpMulticastListenService.cpp
+    src/AsyncUdpMulticastSendingService.cpp
+    src/CommNodeList.cpp
+    src/CommNodeUi.cpp
+    src/SyncTcpNodeCommsClient.cpp
+    src/TcpTimestampMessage.cpp    
+    src/UdpMulticastMessage.cpp
+    src/UtilityFunctions.cpp
     )
+
 add_library(${PROJECT_LIB_NAME} ${COMMSNODE_LIB_SOURCES})
 
 #--------------------------------------
@@ -47,7 +55,12 @@ add_library(${PROJECT_LIB_NAME} ${COMMSNODE_LIB_SOURCES})
 #--------------------------------------
 set(MAIN_SOURCE src/main.cpp)
 add_executable(${PROJECT_NAME_STR} ${MAIN_SOURCE})
-target_link_libraries(${PROJECT_NAME_STR} ${PROJECT_LIB_NAME} ${Boost_LIBRARIES})
+if(UNIX)
+    target_link_libraries(${PROJECT_NAME_STR} ${PROJECT_LIB_NAME} ${CURSES_LIBRARIES} ${Boost_LIBRARIES})
+endif()
+if(MSVC)
+    target_link_libraries(${PROJECT_NAME_STR} ${PROJECT_LIB_NAME} ${Boost_LIBRARIES})
+endif()
 
 #--------------------------------------
 # Test

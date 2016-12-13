@@ -9,10 +9,14 @@
 
 #include "ServerTcpConnection.h"
 
-class CommsNodeAsyncTcpServer
+/*
+ * This class is responsible for listening and responding to TCP pings,
+ * it simply responds with a UTC timestamp
+ */
+class AsyncTcpListenServer
 {
 public:
-  CommsNodeAsyncTcpServer(boost::asio::io_service& ioService,
+  AsyncTcpListenServer(boost::asio::io_service& ioService,
       const std::string& commsNodeSessionId);
 
   int serverListenPort() const;

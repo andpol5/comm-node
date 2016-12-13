@@ -7,10 +7,13 @@
 
 #include <boost/asio.hpp>
 
-class CommsNodeDiscoverableService
+/*
+ * AsyncUdpMulticastSendingService sends UDP multicasts with information about this CommNode
+ */
+class AsyncUdpMulticastSendingService
 {
 public:
-  CommsNodeDiscoverableService(boost::asio::io_service& ioService,
+  AsyncUdpMulticastSendingService(boost::asio::io_service& ioService,
       const boost::asio::ip::address& multicastAddress,
       const std::string& multicastMessage,
       int timeoutSeconds);
