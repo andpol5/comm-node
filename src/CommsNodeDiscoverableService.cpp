@@ -48,6 +48,7 @@ void CommsNodeDiscoverableService::stop()
 
 void CommsNodeDiscoverableService::handleTimeOutAndRestartTimer(const boost::system::error_code& error)
 {
+//  std::cout << "DEBUG: UdpMulticaster - handled timeout" << std::endl;
   if(!error)
   {
     socket_.async_send_to(
@@ -63,6 +64,7 @@ void CommsNodeDiscoverableService::handleTimeOutAndRestartTimer(const boost::sys
 
 void CommsNodeDiscoverableService::handleSendTo(const boost::system::error_code& error)
 {
+//  std::cout << "DEBUG: UdpMulticaster - handled sendto" << std::endl;
   if(!error)
   {
     timer_.expires_from_now(boost::posix_time::seconds(timeoutSeconds_));

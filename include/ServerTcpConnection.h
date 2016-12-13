@@ -27,11 +27,6 @@ public:
     return socket_;
   }
 
-  void setUniqueServerId(std::string uniqueId)
-  {
-    uniqueId_= uniqueId;
-  }
-
   void start()
   {
     message_ = createMessageString();
@@ -42,7 +37,7 @@ public:
     //************************
     boost::asio::async_write(socket_, boost::asio::buffer(message_),
         boost::bind(&ServerTcpConnection::handleWrite, shared_from_this(),
-            boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+            boost::asio::placeholders::error));
   }
 
 private:
@@ -51,17 +46,20 @@ private:
   {
   }
 
-  void handleWrite(const boost::system::error_code& /*error*/, size_t /*bytes_transferred*/)
+  void handleWrite(const boost::system::error_code& error)
   {
+    if(error)
+    {
+      std::cout << error.message() << std::endl;
+    }
   }
 
   std::string createMessageString()
   {
     auto now = boost::posix_time::second_clock::universal_time();
-    return std::string(uniqueId_ + "::" + boost::posix_time::to_simple_string(now));
+    return std::string(boost::posix_time::to_simple_string(now));
   }
 
   tcp::socket socket_;
-  std::string uniqueId_;
   std::string message_;
 };

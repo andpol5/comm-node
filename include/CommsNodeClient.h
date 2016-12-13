@@ -18,7 +18,7 @@ public:
       const CommNodeMap& nodeMap);
 
 private:
-  void handleTimeOutAndRestartTimer();
+  void handleTimeOutAndRestartTimer(const boost::system::error_code& error);
 
   void readFromServers();
 

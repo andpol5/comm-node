@@ -47,7 +47,7 @@ void CommsNodeDiscoveryService::handleReceiveFrom(
     const boost::system::error_code& error,
     size_t bytesReceived, asio::ip::address senderAddress)
 {
-
+//  std::cout << "DEBUG: UdpListenServer - handled receive from" << std::endl;
   if(!error)
   {
     DiscoveryMulticastMessage msg;
