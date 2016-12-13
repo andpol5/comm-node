@@ -7,7 +7,17 @@ BOOST_FLAGS=-IC:/MinGW/include -LC:/MinGW/lib -lboost_system -lboost_filesystem 
 all: commsnode
 
 commsnode:
-	$(CC) -o build/commsnode.exe src/main.cpp src/CommsNodeAsyncTcpServer.cpp src/CommsNodeClient.cpp -Iinclude $(BOOST_FLAGS) -lws2_32 -lwsock32
+	$(CC) -o build/commsnode.exe \
+	src/CommNodeMap.cpp \
+	src/CommsNodeAsyncTcpServer.cpp \
+	src/CommsNodeClient.cpp \
+	src/CommsNodeDiscoverableService.cpp \
+	src/CommsNodeDiscoveryService.cpp \
+	src/CommsNodeDiscoveryService.cpp \
+	src/DiscoveryMulticastMessage.cpp \
+	src/UuidGenerator.cpp \
+	src/main.cpp \
+	-Iinclude $(BOOST_FLAGS) -lws2_32 -lwsock32
 
 clean:
 	$(RM) build/commsnode.exe
