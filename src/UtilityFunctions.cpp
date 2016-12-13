@@ -18,6 +18,8 @@
 
 namespace UtilityFunctions
 {
+  static const boost::posix_time::ptime EPOCH(boost::gregorian::date(1970, 1, 1));
+
   std::string generateUuid()
   {
     auto generator = boost::uuids::random_generator();
@@ -27,8 +29,8 @@ namespace UtilityFunctions
 
   uint64_t microsecondsSinceEpoch()
   {
-    static const boost::posix_time::ptime epoch(boost::gregorian::date(1970, 1, 1));
-    auto now = (boost::posix_time::microsec_clock::universal_time() - epoch).total_microseconds();
+    auto now = (boost::posix_time::microsec_clock::universal_time() - EPOCH).total_microseconds();
     return static_cast<uint64_t>(now);
   }
+
 }
