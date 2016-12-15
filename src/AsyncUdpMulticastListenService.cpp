@@ -6,6 +6,8 @@
 #include <string>
 
 #include <boost/bind.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread.hpp>
 
 #include "AsyncUdpMulticastListenService.h"
 #include "CommNode.h"
@@ -16,7 +18,7 @@
 namespace asio = boost::asio;
 namespace
 {
-  const asio::ip::address LISTEN_ADDRESS = asio::ip::address::from_string("0.0.0.0");
+  const asio::ip::address ANY_ADDRESS = asio::ip::address::from_string("0.0.0.0");
 }
 
 AsyncUdpMulticastListenService::AsyncUdpMulticastListenService(asio::io_service& ioService,
@@ -27,7 +29,11 @@ AsyncUdpMulticastListenService::AsyncUdpMulticastListenService(asio::io_service&
 , socket_(ioService)
 , sharedNodeList_(nodeList)
 {
-  boost::asio::ip::udp::endpoint listenEndpoint(LISTEN_ADDRESS, multicastListenPort);
+  // Delayed start
+  boost::posix_time::milliseconds msTime(1000);
+  boost::this_thread::sleep(msTime);
+
+  boost::asio::ip::udp::endpoint listenEndpoint(ANY_ADDRESS, multicastListenPort);
   // Create the socket so that multiple addresses may be bound to the same address
   socket_.open(listenEndpoint.protocol());
   socket_.set_option(asio::ip::udp::socket::reuse_address(true));
@@ -51,8 +57,7 @@ void AsyncUdpMulticastListenService::handleReceiveFrom(
     bool messageDecoded;
     msg.decodeMessage(std::string(dataBuffer_, bytesReceived), messageDecoded);
 
-    // Ignore the first time when the senderAddres ==  multicastListenAddress_
-    if(messageDecoded && senderAddress != multicastListenAddress_)
+    if(messageDecoded)
     {
       CommNode newNode;
       newNode.timeStampLastReceived = time;
@@ -63,10 +68,6 @@ void AsyncUdpMulticastListenService::handleReceiveFrom(
 
       // Add node to the shared list
       sharedNodeList_.addNode(newNode);
-    }
-    else if(senderAddress != multicastListenAddress_)
-    {
-      std::cerr << "could not decode message: " << dataBuffer_ << std::endl;
     }
   }
   else

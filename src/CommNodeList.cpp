@@ -26,7 +26,10 @@ void CommNodeList::addNode(CommNode& node)
   }
   else
   {
+    // Last received is always being updated
     foundIterator->second.timeStampLastReceived = node.timeStampLastReceived;
+    // Sometimes the address is not resolved right away
+    foundIterator->second.tcpServerAddress = node.tcpServerAddress;
   }
 }
 
