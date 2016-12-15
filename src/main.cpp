@@ -23,7 +23,6 @@ typedef boost::asio::ip::address IpAddress;
 namespace
 {
   const int MULTICAST_TIMEOUT_SECONDS = 1;
-  const int TEMP_TCP_SERVER_PORT = 1337;
 }
 
 void tcpClientAndUiThread(CommNodeList& nodeList)
@@ -100,7 +99,7 @@ int main(int argc, char** argv)
   CommNodeList nodeList(nodeListMutex);
 
   // Using boost::thread for Windows compatibility as the MinGW compiler
-  // does not yet support std::thread
+  // does not properly support std::thread
   boost::thread thread1(&udpMulticastAndTcpServerThread, uniqueSesssionId, multicastAddress);
   // Pass the nodeList by reference since boost passes by value by default
   boost::thread thread2(&udpMulticastReceiverThread, multicastAddress, boost::ref(nodeList));

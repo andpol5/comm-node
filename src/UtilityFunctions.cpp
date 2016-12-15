@@ -27,10 +27,9 @@ namespace UtilityFunctions
     return to_string(uuid);
   }
 
-  uint64_t microsecondsSinceEpoch()
+  int64_t microsecondsSinceEpoch()
   {
     auto now = (boost::posix_time::microsec_clock::universal_time() - EPOCH).total_microseconds();
-    return static_cast<uint64_t>(now);
+    return static_cast<int64_t>(now);
   }
-
 }

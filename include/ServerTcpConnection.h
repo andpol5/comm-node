@@ -7,10 +7,11 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+//#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
-#include "TcpTimestampMessage.h"
 #include "UtilityFunctions.h"
 
 class ServerTcpConnection : public boost::enable_shared_from_this<ServerTcpConnection>
@@ -30,20 +31,19 @@ public:
 
   void start()
   {
-    message_.setTimestamp(UtilityFunctions::microsecondsSinceEpoch());
-    // Debug: delayed response here
-//    //************************
-//    boost::posix_time::milliseconds msTime(57);
-//    boost::this_thread::sleep(msTime);
-    //************************
-    boost::asio::async_write(socket_, boost::asio::buffer(message_.encodeMessage()),
+    /************************
+    // Delay response here
+    boost::posix_time::milliseconds msTime(57);
+    boost::this_thread::sleep(msTime);
+    ************************/
+    boost::asio::async_write(socket_, boost::asio::buffer(currenTimeAsString()),
         boost::bind(&ServerTcpConnection::handleWrite, shared_from_this(),
             boost::asio::placeholders::error));
   }
 
 private:
   ServerTcpConnection(boost::asio::io_service& ioService)
-  :	socket_(ioService)
+  : socket_(ioService)
   {
   }
 
@@ -55,6 +55,12 @@ private:
     }
   }
 
+  std::string currenTimeAsString() const
+  {
+    std::ostringstream ss;
+    ss << UtilityFunctions::microsecondsSinceEpoch();
+    return ss.str();
+  }
+
   tcp::socket socket_;
-  TcpTimestampMessage message_;
 };

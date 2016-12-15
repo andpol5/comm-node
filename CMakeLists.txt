@@ -43,7 +43,6 @@ set(COMMSNODE_LIB_SOURCES
     src/CommNodeList.cpp
     src/CommNodeUi.cpp
     src/SyncTcpNodeCommsClient.cpp
-    src/TcpTimestampMessage.cpp    
     src/UdpMulticastMessage.cpp
     src/UtilityFunctions.cpp
     )

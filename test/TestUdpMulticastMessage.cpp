@@ -2,7 +2,7 @@
  *  Communications Node Test
  *  @author Andrei Polzounov
  */
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "UdpMulticastMessage.h"
 

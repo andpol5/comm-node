@@ -9,5 +9,5 @@
 namespace UtilityFunctions
 {
   std::string generateUuid();
-  uint64_t microsecondsSinceEpoch();
+  int64_t microsecondsSinceEpoch();
 };

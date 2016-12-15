@@ -19,12 +19,14 @@
 #include "CommNodeUi.h"
 #include "UtilityFunctions.h"
 
+#define DEBUG_UI_OFF
+
 namespace
 {
   std::string ipAndPort(boost::asio::ip::address ip, int port)
   {
     std::stringstream ss;
-    ss << ip.to_string() << ":" << std::setw(5) << port;
+    ss << std::setw(14) << ip.to_string() << ":" << std::setw(5) << port;
     return ss.str();
   }
 
@@ -39,19 +41,23 @@ namespace
 
 CommNodeUi::CommNodeUi()
 {
+#ifndef DEBUG_UI_OFF
 #ifndef _WIN32
   initscr();
 #else
 
 #endif
+#endif
 }
 
 CommNodeUi::~CommNodeUi()
 {
+#ifndef DEBUG_UI_OFF
 #ifndef _WIN32
   endwin();
 #else
 
+#endif
 #endif
 }
 
@@ -76,12 +82,13 @@ CommNodeUi::~CommNodeUi()
 
 void CommNodeUi::updateScreen(const std::vector<CommNode>& nodes) const
 {
+#ifndef DEBUG_UI_OFF
 #ifndef _WIN32
   clear();
 #else
   system("cls");
 #endif
-  int count = 1;
+#endif
   int numNodes = nodes.size();
   std::stringstream ss;
   ss << "-----------------------------------------------------------------------\n"
@@ -97,27 +104,32 @@ void CommNodeUi::updateScreen(const std::vector<CommNode>& nodes) const
      << "             |                    |   (s)  |   (ms) |   (ms) |   (ms) |\n"
      << "-------------+--------------------+--------+--------+--------+--------+\n";
 
-  for(auto itr = nodes.begin(), end = nodes.end(); itr != end; ++itr, ++count)
+  for(auto itr = nodes.begin(), end = nodes.end(); itr != end; ++itr)
   {
     double timeAliveSeconds = static_cast<double>(
         UtilityFunctions::microsecondsSinceEpoch()-itr->timeStampFirstSeen)/1000000.0;
     double roundTripTimeMs = static_cast<double>(itr->roundTripTime)/1000.0;
     double toTripTimeMs = static_cast<double>(itr->toOtherTripTime)/1000.0;
+    double fromTripTimeMs = static_cast<double>(itr->fromOtherTripTime)/1000.0;
     ss << itr->sessionId.substr(0, 13) << "|"
        << ipAndPort(itr->tcpServerAddress, itr->tcpServerPort) << "|"
        << setWidth(timeAliveSeconds, 8, 4) << "|"
        << setWidth(roundTripTimeMs, 8) << "|"
        << setWidth(toTripTimeMs, 8) << "|"
-       << setWidth(0.0, 8) << "|"
+       << setWidth(fromTripTimeMs, 8) << "|"
        << "\n";
   }
   ss << "-------------+--------------------+--------+--------+--------+--------+\n"; 
   std::string string = ss.str();
 
+#ifndef DEBUG_UI_OFF
 #ifndef _WIN32
   printw(string.c_str());
   refresh();
 #else
   std::cout << string;
+#endif
+#else
+  std::cout << string << std::endl;
 #endif
 }

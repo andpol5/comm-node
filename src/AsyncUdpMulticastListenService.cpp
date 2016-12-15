@@ -6,7 +6,6 @@
 #include <string>
 
 #include <boost/bind.hpp>
-#include <boost/thread.hpp>
 
 #include "AsyncUdpMulticastListenService.h"
 #include "CommNode.h"
@@ -17,8 +16,7 @@
 namespace asio = boost::asio;
 namespace
 {
-  const asio::ip::address LISTEN_ADDRESS = 
-    boost::asio::ip::address::from_string("0.0.0.0");
+  const asio::ip::address LISTEN_ADDRESS = asio::ip::address::from_string("0.0.0.0");
   const short MULTICAST_PORT = 30001;
 }
 

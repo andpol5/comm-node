@@ -7,7 +7,6 @@
 #include <string>
 
 #include <boost/asio.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 class CommNodeList;
 class CommNodeUi;
@@ -26,14 +25,16 @@ public:
 private:
   void handleTimeOutAndRestartTimer(const boost::system::error_code& error);
 
-  void readFromServers();
+  void readFromOtherCommNodes();
+  int64_t timestampFromString(const std::string& string) const;
 
   boost::asio::io_service& ioService_;
   boost::asio::deadline_timer timer_;
 
   CommNodeList& sharedNodeList_;
-
-  // Buffer for receiving TCP messages (8 bytes for 64-bit int)
-  std::vector<unsigned char> dataBuffer_;
   const CommNodeUi& ui_;
+
+  // Buffer for receiving messages
+  static const int MAX_BUFFER_LENGTH = 512;
+  char dataBuffer_[MAX_BUFFER_LENGTH];
 };
