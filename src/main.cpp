@@ -10,7 +10,14 @@
 #include <boost/program_options.hpp>
 #include <boost/thread.hpp>
 
-
+#include "AsyncTcpListenServer.h"
+#include "AsyncUdpMulticastListenService.h"
+#include "AsyncUdpMulticastSendingService.h"
+#include "CommNodeList.h"
+#include "CommNodeUi.h"
+#include "SyncTcpNodeCommsClient.h"
+#include "UdpMulticastMessage.h"
+#include "UtilityFunctions.h"
 
 using boost::asio::ip::tcp;
 typedef boost::asio::ip::address ip_address;
