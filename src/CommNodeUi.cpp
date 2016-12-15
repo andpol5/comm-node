@@ -16,7 +16,7 @@
 #include "CommNodeUi.h"
 #include "UtilityFunctions.h"
 
-//#define DEBUG_UI
+#define DEBUG_UI
 
 namespace
 {

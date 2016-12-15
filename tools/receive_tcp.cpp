@@ -1,25 +1,26 @@
 /*
- *  Communications Node
+ *  TCP Client tool
  *  @author Andrei Polzounov
  */
-#include <boost/asio.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <iostream>
 #include <string>
+
+#include <boost/asio.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
 
 using boost::asio::ip::tcp;
 
-class CommsNodeClient
+class TcpClient
 {
 public:
-  CommsNodeClient(boost::asio::io_service& ioService,
+  TcpClient(boost::asio::io_service& ioService,
       const char* hostname, int serverPort);
 
-  void printDaytimeOnTimer();
+  void printMessage();
 
 private:
-  std::string readDaytimeFromServer();
+  std::string readFromServer();
 
   boost::asio::io_service& ioService_;
   boost::asio::deadline_timer timer_;
@@ -29,7 +30,7 @@ private:
 };
 
 
-CommsNodeClient::CommsNodeClient(boost::asio::io_service& ioService,
+TcpClient::TcpClient(boost::asio::io_service& ioService,
     const char* hostname, int serverPort)
 : ioService_(ioService)
 , timer_(ioService_, boost::posix_time::seconds(1))
@@ -37,20 +38,19 @@ CommsNodeClient::CommsNodeClient(boost::asio::io_service& ioService,
 , hostname_(hostname)
 , serverPort_(serverPort)
 {
-  timer_.async_wait(boost::bind(&CommsNodeClient::printDaytimeOnTimer, this));
+  timer_.async_wait(boost::bind(&TcpClient::printMessage, this));
 }
 
-void CommsNodeClient::printDaytimeOnTimer()
+void TcpClient::printMessage()
 {
-
-  std::cout << readDaytimeFromServer();
+  std::cout << readFromServer();
   ++count_;
 
   timer_.expires_from_now(boost::posix_time::seconds(1));
-  timer_.async_wait(boost::bind(&CommsNodeClient::printDaytimeOnTimer, this));
+  timer_.async_wait(boost::bind(&TcpClient::printMessage, this));
 }
 
-std::string CommsNodeClient::readDaytimeFromServer()
+std::string TcpClient::readFromServer()
 {
   tcp::resolver resolver(ioService_);
   // argv1 is the IP address here -
@@ -62,7 +62,7 @@ std::string CommsNodeClient::readDaytimeFromServer()
 
   while(true)
   {
-    boost::array<char, 128> buf;
+    boost::array<char, 512> buf;
     boost::system::error_code error;
 
     size_t len = socket.read_some(boost::asio::buffer(buf), error);
@@ -91,15 +91,12 @@ int main(int argc, char* argv[])
     }
 
     boost::asio::io_service ioService;
-
-    CommsNodeClient client(ioService, argv[1], atoi(argv[2]));
+    TcpClient client(ioService, argv[1], atoi(argv[2]));
     ioService.run();
   }
   catch (std::exception& e)
   {
     std::cerr << e.what() << std::endl;
   }
-
   return 0;
 }
-
