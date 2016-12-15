@@ -20,6 +20,8 @@ public:
       int timeoutSeconds);
 
 private:
+  void startSendingMulticasts();
+
   // Both of the handle functions are asynchronous
   void handleTimeOutAndRestartTimer(const boost::system::error_code& error);
   void handleSendTo(const boost::system::error_code& error);

@@ -10,14 +10,6 @@
 #include <boost/program_options.hpp>
 #include <boost/thread.hpp>
 
-#include "AsyncTcpListenServer.h"
-#include "AsyncUdpMulticastListenService.h"
-#include "AsyncUdpMulticastSendingService.h"
-#include "CommNodeList.h"
-#include "CommNodeUi.h"
-#include "SyncTcpNodeCommsClient.h"
-#include "UdpMulticastMessage.h"
-#include "UtilityFunctions.h"
 
 
 using boost::asio::ip::tcp;
@@ -29,7 +21,7 @@ namespace
   const ip_address DEFAULT_MULTICAST_ADDRESS = ip_address::from_string("239.255.0.1");
   const int DEFAULT_TCP_CLIENT_TIMEOUT_SECONDS = 3;
   const int DEFAULT_MULTICAST_TIMEOUT_SECONDS = 1;
-  const int DEFAULT_MULTICAST_PORT = 3001;
+  const int DEFAULT_MULTICAST_PORT = 30001;
 }
 
 void tcpClientAndUiThread(std::string sessionId,

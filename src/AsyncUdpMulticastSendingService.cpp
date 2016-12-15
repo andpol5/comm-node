@@ -26,6 +26,11 @@ AsyncUdpMulticastSendingService::AsyncUdpMulticastSendingService(boost::asio::io
 , timeoutSeconds_(timeoutSeconds)
 , timer_(ioService_, boost::posix_time::seconds(timeoutSeconds_))
 {
+  startSendingMulticasts();
+}
+
+void AsyncUdpMulticastSendingService::startSendingMulticasts()
+{
   timer_.async_wait(boost::bind(&AsyncUdpMulticastSendingService::handleTimeOutAndRestartTimer,
       this, boost::asio::placeholders::error));
 }
