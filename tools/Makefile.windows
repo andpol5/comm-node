@@ -1,0 +1,17 @@
+# Makefile for Windows and MinGW (https://nuwen.net/mingw.html)
+CC=g++ -std=c++11
+RM=del
+
+BOOST_FLAGS=-IC:/MinGW/include -LC:/MinGW/lib -lboost_system -lboost_filesystem -lboost_regex -lboost_system -lboost_thread -lboost_date_time -lboost_program_options
+WIN_FLAGS=-lws2_32 -lwsock32
+
+all: rx_udp rx_tcp
+
+rx_udp:
+	$(CC) -o rx_udp.exe receive_udp_multicast.cpp $(BOOST_FLAGS) $(WIN_FLAGS)
+
+rx_tcp:
+	$(CC) -o rx_tcp receive_tcp.cpp $(BOOST_FLAGS) $(WIN_FLAGS)
+
+clean:
+	$(RM) rx_udp rx_tcp
