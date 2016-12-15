@@ -1,0 +1,16 @@
+# Makefile for sender and receiver
+CC=g++ -std=c++11
+RM=rm -f
+
+BOOST_FLAGS=-I/usr/include/boost/ -L/usr/lib/x86_64-linux-gnu/ -lboost_system -lboost_filesystem -lboost_regex -lboost_system -lboost_thread -lboost_date_time -pthread
+
+all: rx_udp rx_tcp
+
+rx_udp:
+	$(CC) -o rx_udp receive_udp_multicast.cpp $(BOOST_FLAGS)
+
+rx_tcp:
+	$(CC) -o rx_tcp receive_tcp.cpp $(BOOST_FLAGS)
+
+clean:
+	$(RM) rx_tcp rx_udp
