@@ -18,6 +18,7 @@ class AsyncUdpMulticastListenService
 public:
   AsyncUdpMulticastListenService(boost::asio::io_service& ioService,
       const boost::asio::ip::address& multicastListenAddress,
+      int multicastListenPort,
       CommNodeList& nodeList);
 
 private:

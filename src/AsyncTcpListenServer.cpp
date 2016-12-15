@@ -15,11 +15,9 @@ namespace
 
 using boost::asio::ip::tcp;
 
-AsyncTcpListenServer::AsyncTcpListenServer(boost::asio::io_service& ioService,
-    const std::string& commsNodeSessionId)
+AsyncTcpListenServer::AsyncTcpListenServer(boost::asio::io_service& ioService)
 : endpoint_(tcp::v4(), NULL_PORT)
 , acceptor_(ioService, endpoint_)
-, commsNodeSessionId_(commsNodeSessionId)
 {
   // Let asio and the OS assign and bind some port number
   // and then we can read it from local_endpoint()

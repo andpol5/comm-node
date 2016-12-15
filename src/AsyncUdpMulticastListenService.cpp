@@ -17,17 +17,17 @@ namespace asio = boost::asio;
 namespace
 {
   const asio::ip::address LISTEN_ADDRESS = asio::ip::address::from_string("0.0.0.0");
-  const short MULTICAST_PORT = 30001;
 }
 
 AsyncUdpMulticastListenService::AsyncUdpMulticastListenService(asio::io_service& ioService,
     const asio::ip::address& multicastListenAddress,
+    int multicastListenPort,
     CommNodeList& nodeList)
 : multicastListenAddress_(multicastListenAddress)
 , socket_(ioService)
 , sharedNodeList_(nodeList)
 {
-  boost::asio::ip::udp::endpoint listenEndpoint(LISTEN_ADDRESS, MULTICAST_PORT);	
+  boost::asio::ip::udp::endpoint listenEndpoint(LISTEN_ADDRESS, multicastListenPort);
   // Create the socket so that multiple addresses may be bound to the same address
   socket_.open(listenEndpoint.protocol());
   socket_.set_option(asio::ip::udp::socket::reuse_address(true));

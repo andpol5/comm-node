@@ -20,7 +20,8 @@ class SyncTcpNodeCommsClient
 public:
   SyncTcpNodeCommsClient(boost::asio::io_service& ioService,
       CommNodeList& sharedNodeList,
-      const CommNodeUi& ui);
+      const CommNodeUi& ui,
+      int timeoutSeconds);
 
 private:
   void handleTimeOutAndRestartTimer(const boost::system::error_code& error);
@@ -33,6 +34,7 @@ private:
 
   CommNodeList& sharedNodeList_;
   const CommNodeUi& ui_;
+  int timeoutSeconds_;
 
   // Buffer for receiving messages
   static const int MAX_BUFFER_LENGTH = 512;

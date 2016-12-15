@@ -12,22 +12,20 @@
 #include <iomanip>
 #include <iostream>
 
-#include <boost/asio.hpp>
-#include <boost/circular_buffer.hpp>
-
 #include "CommNode.h"
 #include "CommNodeUi.h"
 #include "UtilityFunctions.h"
 
-#define DEBUG_UI_OFF
+//#define DEBUG_UI
 
 namespace
 {
-  std::string ipAndPort(boost::asio::ip::address ip, int port)
+  std::string ipAndPort(const boost::asio::ip::address& ip, int port)
   {
-    std::stringstream ss;
-    ss << std::setw(14) << ip.to_string() << ":" << std::setw(5) << port;
-    return ss.str();
+    std::stringstream ss1, ss2;
+    ss1 << std::setw(15) << ip.to_string() << ":" << port;
+    ss2 << std::setw(21) << ss1.str();
+    return ss2.str();
   }
 
   std::string setWidth(double val, int width, int precision = 3)
@@ -39,9 +37,15 @@ namespace
   }
 }
 
-CommNodeUi::CommNodeUi()
+CommNodeUi::CommNodeUi(const std::string sessionId,
+    const boost::asio::ip::address& multicastAddress, int multicastPort)
 {
-#ifndef DEBUG_UI_OFF
+  std::stringstream ss;
+  ss << " Comm Node " << sessionId.substr(0, 13) << ", multicast: " <<
+      ipAndPort(multicastAddress, multicastPort) << "\n";
+  titleLine_ = ss.str();
+
+#ifndef DEBUG_UI
 #ifndef _WIN32
   initscr();
 #else
@@ -52,7 +56,7 @@ CommNodeUi::CommNodeUi()
 
 CommNodeUi::~CommNodeUi()
 {
-#ifndef DEBUG_UI_OFF
+#ifndef DEBUG_UI
 #ifndef _WIN32
   endwin();
 #else
@@ -61,28 +65,9 @@ CommNodeUi::~CommNodeUi()
 #endif
 }
 
-//void CommNodeUi::updateScreen(const std::vector<CommNode>& nodes) const
-//{
-//  int count = 1;
-//  std::cout << "############################################################" << std::endl;
-//  for(auto itr = nodes.begin(), end = nodes.end(); itr != end; ++itr, ++count)
-//  {
-//    std::cout << "CommNode ("<< count <<"/"<<nodes.size() << ")"
-//        << ", IP: " << itr->tcpServerAddress.to_string()
-//        << ", port: " << itr->tcpServerPort << ", id: " << itr->sessionId
-//        << ", timestamp: " << itr->timeStampFirstSeen
-//        << ", first seen: " << itr->timeStampFirstSeen
-//        << ", round trip: " << itr->roundTripTime
-//        << ", to time: " << itr->toOtherTripTime
-//        << ", from time: " << itr->fromOtherTripTime
-//        << std::endl;
-//  }
-//  std::cout << "############################################################" << std::endl;
-//}
-
 void CommNodeUi::updateScreen(const std::vector<CommNode>& nodes) const
 {
-#ifndef DEBUG_UI_OFF
+#ifndef DEBUG_UI
 #ifndef _WIN32
   clear();
 #else
@@ -91,18 +76,18 @@ void CommNodeUi::updateScreen(const std::vector<CommNode>& nodes) const
 #endif
   int numNodes = nodes.size();
   std::stringstream ss;
-  ss << "-----------------------------------------------------------------------\n"
-     << "                           Comm Nodes\n"
-     << "-----------------------------------------------------------------------\n";
+  ss << "----------------------------------------------------------------------------\n"
+     << titleLine_
+     << "----------------------------------------------------------------------------\n";
   if(numNodes==1)
     ss << " 1 communication node was detected on the network\n";
   else
     ss << " " << numNodes << " communication nodes were detected on the network\n";
-  ss << "-------------+--------------------+--------+--------+--------+--------+\n"
-     << "             |                    |  Time  |   Round|    To  |   From |\n"
-     << " Session ID  |  TCP <ip>::<port>  |  Alive |   Trip |   Node |   Node |\n"
-     << "             |                    |   (s)  |   (ms) |   (ms) |   (ms) |\n"
-     << "-------------+--------------------+--------+--------+--------+--------+\n";
+  ss << "-------------+---------------------+---------+---------+---------+---------+\n"
+     << "             |                     |   Time  |   Round |    To   |   From  |\n"
+     << " Session ID  |   TCP <ip>::<port>  |  Alive  |   Trip  |   Node  |   Node  |\n"
+     << "             |                     |    (s)  |   (ms)  |   (ms)  |   (ms)  |\n"
+     << "-------------+---------------------+---------+---------+---------+---------+\n";
 
   for(auto itr = nodes.begin(), end = nodes.end(); itr != end; ++itr)
   {
@@ -113,16 +98,16 @@ void CommNodeUi::updateScreen(const std::vector<CommNode>& nodes) const
     double fromTripTimeMs = static_cast<double>(itr->fromOtherTripTime)/1000.0;
     ss << itr->sessionId.substr(0, 13) << "|"
        << ipAndPort(itr->tcpServerAddress, itr->tcpServerPort) << "|"
-       << setWidth(timeAliveSeconds, 8, 4) << "|"
-       << setWidth(roundTripTimeMs, 8) << "|"
-       << setWidth(toTripTimeMs, 8) << "|"
-       << setWidth(fromTripTimeMs, 8) << "|"
+       << setWidth(timeAliveSeconds, 9, 4) << "|"
+       << setWidth(roundTripTimeMs, 9) << "|"
+       << setWidth(toTripTimeMs, 9) << "|"
+       << setWidth(fromTripTimeMs, 9) << "|"
        << "\n";
   }
-  ss << "-------------+--------------------+--------+--------+--------+--------+\n"; 
+  ss << "-------------+---------------------+---------+---------+---------+---------+\n";
   std::string string = ss.str();
 
-#ifndef DEBUG_UI_OFF
+#ifndef DEBUG_UI
 #ifndef _WIN32
   printw(string.c_str());
   refresh();

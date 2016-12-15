@@ -15,11 +15,9 @@ class AsyncUdpMulticastSendingService
 public:
   AsyncUdpMulticastSendingService(boost::asio::io_service& ioService,
       const boost::asio::ip::address& multicastAddress,
+      int multicastPort,
       const std::string& multicastMessage,
       int timeoutSeconds);
-
-  void start();
-  void stop();
 
 private:
   // Both of the handle functions are asynchronous

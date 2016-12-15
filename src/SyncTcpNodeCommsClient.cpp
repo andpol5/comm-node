@@ -15,20 +15,15 @@
 #include "SyncTcpNodeCommsClient.h"
 #include "UtilityFunctions.h"
 
-namespace
-{
-  // Check the server every x seconds
-  const int TIMER_UPDATE_SECONDS = 3;
-}
-
 using boost::asio::ip::tcp;
 
 SyncTcpNodeCommsClient::SyncTcpNodeCommsClient(boost::asio::io_service& ioService,
-    CommNodeList& sharedNodeList, const CommNodeUi& ui)
+    CommNodeList& sharedNodeList, const CommNodeUi& ui, int timeoutSeconds)
 : ioService_(ioService)
-, timer_(ioService_, boost::posix_time::seconds(TIMER_UPDATE_SECONDS))
+, timer_(ioService_, boost::posix_time::seconds(timeoutSeconds))
 , sharedNodeList_(sharedNodeList)
 , ui_(ui)
+, timeoutSeconds_(timeoutSeconds)
 {
   timer_.async_wait(boost::bind(&SyncTcpNodeCommsClient::handleTimeOutAndRestartTimer,
       this, boost::asio::placeholders::error));
@@ -44,7 +39,7 @@ void SyncTcpNodeCommsClient::handleTimeOutAndRestartTimer(const boost::system::e
   {
     std::cout << error.message() << std::endl;
   }
-  timer_.expires_from_now(boost::posix_time::seconds(TIMER_UPDATE_SECONDS));
+  timer_.expires_from_now(boost::posix_time::seconds(timeoutSeconds_));
   timer_.async_wait(boost::bind(&SyncTcpNodeCommsClient::handleTimeOutAndRestartTimer,
       this, boost::asio::placeholders::error));
 }

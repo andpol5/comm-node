@@ -16,8 +16,7 @@
 class AsyncTcpListenServer
 {
 public:
-  AsyncTcpListenServer(boost::asio::io_service& ioService,
-      const std::string& commsNodeSessionId);
+  AsyncTcpListenServer(boost::asio::io_service& ioService);
 
   int serverListenPort() const;
 
@@ -28,6 +27,5 @@ private:
 
   boost::asio::ip::tcp::endpoint endpoint_;
   boost::asio::ip::tcp::acceptor acceptor_;
-  const std::string& commsNodeSessionId_;
   int serverPortNumber_;
 };
